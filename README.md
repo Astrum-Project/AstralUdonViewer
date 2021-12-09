@@ -10,3 +10,4 @@ Disassemble Udon on world load
 - [ ] Fix disassembly failing after `_start`
 - [ ] MelonPrefs
 - [ ] Core Integration
+- [ ] Remove Core dependency
