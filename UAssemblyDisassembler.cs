@@ -1,6 +1,4 @@
-﻿/* This file is from a decompile with tweeks of `VRC.Udon.Compiler.dll` version `1.0.0.0`
- * From Udon V1.0
- */
+﻿// Modified version of `VRC.Udon.Compiler.dll` version `1.0.0.0`
 
 using System;
 using System.Collections.Generic;
