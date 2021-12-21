@@ -7,7 +7,7 @@ Disassemble Udon on world load
  
 # Todo
 - [ ] View address values
-- [ ] Fix disassembly failing after `_start`
+- [x] Fix disassembly failing after `_start`
 - [ ] MelonPrefs
-- [ ] Core Integration
+- [ ] Core.UI Integration
 - [ ] Remove Core dependency
