@@ -78,7 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AstralUdonViewer.cs" />
-    <Compile Include="UAssemblyDisassembler.cs" />
+    <Compile Include="Disassembler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

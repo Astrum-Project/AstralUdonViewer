@@ -1,17 +1,15 @@
 ﻿using MelonLoader;
 using System;
 using System.IO;
-using System.Linq;
 using UnityEngine.SceneManagement;
 using VRC.Udon;
-using VRC.Udon.UAssembly.Disassembler;
 
-[assembly: MelonInfo(typeof(Astrum.AstralUdonDecompiler), nameof(Astrum.AstralUdonDecompiler), "0.1.0", downloadLink: "github.com/Astrum-Project/" + nameof(Astrum.AstralUdonDecompiler))]
+[assembly: MelonInfo(typeof(Astrum.AstralUdonViewer), nameof(Astrum.AstralUdonViewer), "0.2.0", downloadLink: "github.com/Astrum-Project/" + nameof(Astrum.AstralUdonViewer))]
 [assembly: MelonColor(ConsoleColor.DarkMagenta)]
 
 namespace Astrum
 {
-    public class AstralUdonDecompiler : MelonMod
+    public partial class AstralUdonViewer : MelonMod
     {
         private const string basePath = "UserData/AstralUdonDecompiler";
 
@@ -23,44 +21,37 @@ namespace Astrum
 
         public override void OnSceneWasLoaded(int index, string name)
         {
-            if (index != -1) return;
-            MelonCoroutines.Start(WaitForLocalLoad(name));
+            if (index == -1)
+                MelonCoroutines.Start(DissassembleAll());
         }
 
-        public System.Collections.IEnumerator WaitForLocalLoad(string name)
-        {
-            Scene scene = SceneManager.GetSceneByName(name);
-            while (!scene.GetRootGameObjects().Any(f => f.name.StartsWith("VRCPlayer[Local]")))
-                yield return null;
-
-            DissassembleAll();
-        }
-
-        public static void DissassembleAll()
+        public static System.Collections.IEnumerator DissassembleAll()
         {
             string path = $"{basePath}/{RemoveInvalid(SceneManager.GetActiveScene().name)}";
 
-            if (Directory.Exists(path)) return;
-
+            if (Directory.Exists(path)) yield break;
             else Directory.CreateDirectory(path);
 
+            while (VRC.SDKBase.Networking.LocalPlayer is null)
+                yield return null;
+
+            // todo: change this to All
+            // todo: dedup
             UdonBehaviour[] behaviours = UnityEngine.Object.FindObjectsOfType<UdonBehaviour>();
             
-            AstralCore.Logger.Debug($"{behaviours.Length} UdonBehaviours");
+            AstralCore.Logger.Notif($"[UdonViewer] Disassembling {behaviours.Length} UdonBehaviours");
 
-            for (int i = 0; i < behaviours.Length - 1; i++)
+            foreach (UdonBehaviour behaviour in behaviours)
             {
-                if (behaviours[i]._program is null) continue;
+                if (behaviour._program is null) continue;
 
-                File.WriteAllLines($"{path}/{RemoveInvalid(behaviours[i].name)}.uasm", DisassembleProgram(behaviours[i]));
+                AstralCore.Logger.Trace($"Disassembling {behaviour.name}");
+                Disassembler.DisassembleProgram($"{path}/{RemoveInvalid(behaviour.name)}.uasm", behaviour._program);
+
+                yield return null;
             }
-        }
 
-        public static string[] DisassembleProgram(UdonBehaviour udonBehaviour)
-        {
-            AstralCore.Logger.Trace($"Disassembling {udonBehaviour.name}");
-            Console.Beep(800, 10);
-            return UAssemblyDisassembler.DisassembleProgram(udonBehaviour._program);
+            AstralCore.Logger.Notif("[UdonViewer] Finished!");
         }
 
         private static string RemoveInvalid(string str)
