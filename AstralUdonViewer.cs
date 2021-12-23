@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine.SceneManagement;
 using VRC.Udon;
 
-[assembly: MelonInfo(typeof(Astrum.AstralUdonViewer), nameof(Astrum.AstralUdonViewer), "0.2.0", downloadLink: "github.com/Astrum-Project/" + nameof(Astrum.AstralUdonViewer))]
+[assembly: MelonInfo(typeof(Astrum.AstralUdonViewer), nameof(Astrum.AstralUdonViewer), "0.2.1", downloadLink: "github.com/Astrum-Project/" + nameof(Astrum.AstralUdonViewer))]
 [assembly: MelonColor(ConsoleColor.DarkMagenta)]
 
 namespace Astrum
@@ -46,7 +46,7 @@ namespace Astrum
                 if (behaviour._program is null) continue;
 
                 AstralCore.Logger.Trace($"Disassembling {behaviour.name}");
-                Disassembler.DisassembleProgram($"{path}/{RemoveInvalid(behaviour.name)}.uasm", behaviour._program);
+                MelonCoroutines.Start(Disassembler.DisassembleProgram($"{path}/{RemoveInvalid(behaviour.name)}.uasm", behaviour._program));
 
                 yield return null;
             }

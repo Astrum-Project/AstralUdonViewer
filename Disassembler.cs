@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using VRC.Udon.Common.Interfaces;
 using VRC.Udon.VM.Common;
 
@@ -19,7 +20,7 @@ namespace Astrum
                     lines[i] = DisassembleInstruction(program, ref i);
                     yield return null;
                 }
-                File.WriteAllLines(path, lines);
+                File.WriteAllLines(path, lines.Where(x => !string.IsNullOrEmpty(x)));
             }
 
             public static string DisassembleInstruction(IUdonProgram program, ref uint offset)
