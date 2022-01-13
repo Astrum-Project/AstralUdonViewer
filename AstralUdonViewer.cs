@@ -1,10 +1,11 @@
 ﻿using MelonLoader;
 using System;
 using System.IO;
+using System.Linq;
 using UnityEngine.SceneManagement;
 using VRC.Udon;
 
-[assembly: MelonInfo(typeof(Astrum.AstralUdonViewer), nameof(Astrum.AstralUdonViewer), "0.2.1", downloadLink: "github.com/Astrum-Project/" + nameof(Astrum.AstralUdonViewer))]
+[assembly: MelonInfo(typeof(Astrum.AstralUdonViewer), nameof(Astrum.AstralUdonViewer), "0.3.0", downloadLink: "github.com/Astrum-Project/" + nameof(Astrum.AstralUdonViewer))]
 [assembly: MelonColor(ConsoleColor.DarkMagenta)]
 
 namespace Astrum
@@ -36,21 +37,26 @@ namespace Astrum
                 yield return null;
 
             // todo: change this to All
-            // todo: dedup
-            UdonBehaviour[] behaviours = UnityEngine.Object.FindObjectsOfType<UdonBehaviour>();
-            
+            UdonBehaviour[] behaviours = UnityEngine.Object.FindObjectsOfType<UdonBehaviour>()
+                .GroupBy(x => x.Pointer)
+                .Select(x => x.FirstOrDefault())
+                .ToArray();
+
+            if (behaviours.Length == 0) yield break;
+
             AstralCore.Logger.Notif($"[UdonViewer] Disassembling {behaviours.Length} UdonBehaviours");
 
             foreach (UdonBehaviour behaviour in behaviours)
             {
-                if (behaviour._program is null) continue;
+                if (behaviour?._program is null) continue;
 
                 AstralCore.Logger.Trace($"Disassembling {behaviour.name}");
-                MelonCoroutines.Start(Disassembler.DisassembleProgram($"{path}/{RemoveInvalid(behaviour.name)}.uasm", behaviour._program));
+                MelonCoroutines.Start(Disassembler.DisassembleProgram($"{path}/{RemoveInvalid(behaviour.name)}.uasm", behaviour));
 
                 yield return null;
             }
 
+            // this is a lie! it just started the last behaviour, not finished at all
             AstralCore.Logger.Notif("[UdonViewer] Finished!");
         }
 

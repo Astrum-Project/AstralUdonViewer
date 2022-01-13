@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3F023BCB-4CB9-4631-A790-D49C4E910007}</ProjectGuid>
+    <ProjectGuid>{494A3959-C330-41C6-8142-C7E8951AE991}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Astrum</RootNamespace>

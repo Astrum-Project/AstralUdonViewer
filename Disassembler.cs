@@ -1,8 +1,10 @@
 ﻿// This is a modified version of `VRC.Udon.Compiler.dll`
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using VRC.Udon;
 using VRC.Udon.Common.Interfaces;
 using VRC.Udon.VM.Common;
 
@@ -12,15 +14,33 @@ namespace Astrum
     {
         public static class Disassembler
         {
-            public static System.Collections.IEnumerator DisassembleProgram(string path, IUdonProgram program)
+            public static System.Collections.IEnumerator DisassembleProgram(string path, UdonBehaviour udonBehaviour)
             {
-                string[] lines = new string[program.ByteCode.Length];
+                IUdonProgram program = udonBehaviour._program;
+                var events = udonBehaviour._eventTable;
+
+                var label = GetNextFunction(udonBehaviour, null);
+
+                List<string> lines = new List<string>(program.ByteCode.Length / 4);
                 for (uint i = 0; i < program.ByteCode.Length;)
                 {
-                    lines[i] = DisassembleInstruction(program, ref i);
+                    if (i == label.Item2)
+                    {
+                        lines.Add($"{label.Item1}:");
+                        
+                        string c = DisassembleInstruction(program, ref i);
+                        lines.Add(c);
+                        
+                        label = GetNextFunction(udonBehaviour, i);
+                    } else
+                    {
+                        string c = DisassembleInstruction(program, ref i);
+                        lines.Add(c);
+                    }
+
                     yield return null;
                 }
-                File.WriteAllLines(path, lines.Where(x => !string.IsNullOrEmpty(x)));
+                File.WriteAllLines(path, lines.ToArray().Where(x => !string.IsNullOrEmpty(x)));
             }
 
             public static string DisassembleInstruction(IUdonProgram program, ref uint offset)
@@ -45,6 +65,27 @@ namespace Astrum
                 else if (opCode == OpCode.COPY)
                     return SimpleInstruction(ref offset, "COPY");
                 else return $"0x{(offset += 4) - 4:X}: INVALID (0x{opCode:X})";
+            }
+
+            private static (string, uint) GetNextFunction(UdonBehaviour ub, uint? cur)
+            {
+                uint delta = unchecked((uint)-1);
+                string key = null;
+                foreach (var kvp in ub._eventTable) {
+                    if ((kvp.Value?.Count ?? 0) == 0) continue;
+
+                    uint val = kvp.Value[0];
+
+                    if (cur != null && val <= (uint)cur) continue;
+
+                    if (val < delta) {
+                        delta = val;
+                        key = kvp.Key;
+
+                    }
+                }
+
+                return (key, delta);
             }
 
             private static string SimpleInstruction(ref uint offset, string name)
